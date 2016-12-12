@@ -120,6 +120,8 @@ app.factory('posts', ['$http', function($http) {
     o.create = function(post) {
         // Second argument in the .post method is the new post we're adding to the database.
         return $http.post('/posts', post).success(function(data) {
+            // Very efficient as you're just pushing the new post into the posts array, instead of
+            // querying the database and retrieving all of the posts again.
             o.posts.push(data);
         });
     };
@@ -141,6 +143,7 @@ app.factory('posts', ['$http', function($http) {
         return $http.post('/posts/' + id + '/comments', comment);
     };
 
+    // Very efficient. Just increment the comment counter directly instead of getting the upvote count from our backend.
     o.upvoteComment = function(post, comment) {
         return $http.put('/posts/' + post._id + '/comments/' + comment._id + '/upvote').success(function(data) {
             comment.upvotes += 1;

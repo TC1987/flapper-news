@@ -30,8 +30,9 @@ router.post('/posts', function(req, res, next) {
     })
 })
 
-// Super cool function that allows you to load a specific post.
-// Don't need to
+// Super cool function that allows you to load a specific post by inspecting whether
+// the route path has a 'post' parameter.
+// Although not necessary, keeps our code DRY.
 router.param('post', function(req, res, next, id) {
     var query = Post.findById(id);
 
@@ -49,6 +50,10 @@ router.param('post', function(req, res, next, id) {
     })
 })
 
+// Note that all of these paths that have the parameter :post, the post actually gets
+// retrieved from our router.param('post') path.
+
+// To get a specific post and its comments.
 router.get('/posts/:post', function(req, res) {
     req.post.populate('comments', function(err, post) {
         if (err) {
@@ -59,6 +64,7 @@ router.get('/posts/:post', function(req, res) {
     })
 })
 
+// To upvote a post.
 router.put('/posts/:post/upvote', function(req, res, next) {
     req.post.upvote(function(err, post) {
         if (err) {
@@ -69,6 +75,7 @@ router.put('/posts/:post/upvote', function(req, res, next) {
     })
 })
 
+// To add a new comment to a post.
 router.post('/posts/:post/comments', function(req, res, next) {
     var comment = new Comment(req.body);
     comment.post = req.post;
@@ -89,6 +96,8 @@ router.post('/posts/:post/comments', function(req, res, next) {
     })
 });
 
+// Same as above for :post params, checks to see if :comment is passed as a parameter and if it
+// is, retrieves that comment for the paths below.
 router.param('comment', function(req, res, next, id) {
     var query = Comment.findById(id);
 
@@ -106,6 +115,7 @@ router.param('comment', function(req, res, next, id) {
     })
 })
 
+// To upvote a comment.
 router.put('/posts/:post/comments/:comment/upvote', function(req, res, next) {
     req.comment.upvote(function(err, comment) {
         if (err) {
