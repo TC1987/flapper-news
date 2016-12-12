@@ -45,11 +45,16 @@ app.factory('auth', ['$http', '$window', function($http, $window) {
         return $window.localStorage['flapper-news-token'];
     };
 
+    // Checks if a user is logged in (i.e if the token is there and not expired).
     auth.isLoggedIn = function() {
         var token = auth.getToken();
 
         if (token) {
             // If token exists, check to see if it has expired.
+            // The payload is surrounded by '.' so need to split and then access value in
+            // index 1.
+            // The payload is in base64 so need to use $window.atob to get it back to a JSON
+            // string and then back into an object using JSON.parse.
             var payload = JSON.parse($window.atob(token.split('.')[1]));
 
             return payload.exp > Date.now() / 1000;
@@ -58,6 +63,32 @@ app.factory('auth', ['$http', '$window', function($http, $window) {
             return false;
         }
     };
+
+    // Returns the username of the user that is logged in.
+    auth.currentUser = function() {
+        if (auth.isLoggedIn()) {
+            var token = auth.getToken();
+            var payload = JSON.parse($window.atob(token.split('.')[1]));
+
+            return payload.username;
+        }
+    };
+
+    auth.register = function(user) {
+        return $http.post('/register', user).success(function(data) {
+            auth.saveToken(data.token);
+        });
+    };
+
+    auth.logIn = function(user) {
+        return $http.post('/login', user).success(function(data) {
+            auth.saveToken(data.token);
+        });
+    };
+
+    auth.logOut = function() {
+        $window.localStorage.removeItem('flapper-news-token');
+    }
 
     return auth;
 }])
