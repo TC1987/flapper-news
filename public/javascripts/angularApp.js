@@ -33,6 +33,35 @@ app.config(['$stateProvider', '$urlRouterProvider', function($state, $url) {
 }
 ]);
 
+// Need to inject the $window service to use localStorage.
+app.factory('auth', ['$http', '$window', function($http, $window) {
+    var auth = {};
+
+    auth.saveToken = function(token) {
+        $window.localStorage['flapper-news-token'] = token;
+    };
+
+    auth.getToken = function() {
+        return $window.localStorage['flapper-news-token'];
+    };
+
+    auth.isLoggedIn = function() {
+        var token = auth.getToken();
+
+        if (token) {
+            // If token exists, check to see if it has expired.
+            var payload = JSON.parse($window.atob(token.split('.')[1]));
+
+            return payload.exp > Date.now() / 1000;
+        } else {
+            // It token doesn't exist, user is not logged in.
+            return false;
+        }
+    };
+
+    return auth;
+}])
+
 app.controller('MainCtrl', ['$scope', 'posts', function($scope, posts) {
     // Posts get to the home page through the posts service being injected into
     // this controller.
